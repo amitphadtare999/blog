@@ -1,4 +1,18 @@
+import _ from "loadsh";
 import JsonPlaceholder from "../apis/JsonPlaceholder";
+
+export const fetchPostsAndUsers = () => async (dispatch, getState) => {
+        await dispatch(fetchPosts());
+
+        // const userIds = _.uniq(_.map(getState().posts,"userId"));
+        // userIds.forEach(id => dispatch(fetchUser(id)));
+
+        _.chain(getState().posts)
+                .map('userId')
+                        .uniq()
+                        .forEach(id => dispatch(fetchUser(id)))
+                        .value();
+}
 
 export const fetchPosts = () => async dispatch => {
         const response = await JsonPlaceholder.get('/posts');
@@ -15,8 +29,12 @@ export const fetchPosts = () => async dispatch => {
 //     }
 // }
 
-export const fetchUser = userId => async dispatch => {
+export const fetchUser = userId => dispatch => {
+        _fetchUser(userId,dispatch);
+}
+
+const _fetchUser = _.memoize(async (userId, dispatch) => {
         const response = await JsonPlaceholder.get(`/users/${userId}`);
 
         dispatch({ type: 'FETCH_USER', payload: response.data});
-}
+});
